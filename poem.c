@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 const int NOTLETTER = -2;
+const int ENDOFSTRING = 3;
 char* ReadFile();
 long long StringClean();
 char** CreateMassivPtr();
@@ -25,7 +26,7 @@ int main()
 	printf("All done\n");
 	char** nol = CreateMassivPtr(text, lines);
 	printf("ptr ok\n");
-	Swap(nol[1], nol[2]);
+	//Swap(nol[1], nol[2]);
 	for (int i = 0; i < lines ; i++)
 	{
 		printf("%s\n", *(nol+i));
@@ -73,15 +74,24 @@ long long StringClean(char* text)
 {
 	long long lines = 0;
 	int i = 0;
+	/*if (text[0] == '\n') // если первая строка пустая
+	{
+		text[0] = '\0';
+		i++;
+	}*/
 	while( text[i] != '\0' )
 	{
-		if ((text[i] == '\n') && (text[i+1] != '\n'))
-		{
-				text[i] = '\0';
-				lines++;
-		}
-				i++;
-		
+		//if (text[i] == '\n' && (text[i+1] == '\n')) 
+		//{
+			text[i] = '\0';
+		//}
+		//if ( text[i] == '\n' && (text[i+1] != '\n' || text[i+1] != '\0'))
+		//{
+			//text[i] = '\0';
+			//lines++;
+			//printf(" line %d\n", i);
+		//}
+	//i++;	
 	}
 	text[i+1] = '\n';
 	return lines;
@@ -89,15 +99,13 @@ long long StringClean(char* text)
 
 char** CreateMassivPtr( char* text, long long lines)
 {
-	char** nol = (char* *)calloc(lines, sizeof(char*));
+	char** nol = (char**)calloc(lines, sizeof(char*));
 	//printf("ok 1\n");
-	nol[0] = &text[0];
-	//printf("ok 2\n");
-	int i = 1;
-	int k = 1;
-	while( (*(text+i) != '\n') && k < lines)
-	{
-			if ( text[i] == '\0' && (text[i+1] != '\0' || text[i+1] != '\n' ))
+	int i = 0;
+	int k = 0;
+	while( (*(text+i) != '\n'))
+    {
+		if ( text[i] == '\0' && (text[i+1] != '\0' || text[i+1] != '\n' ))
 			{
 				nol[k] = &text[i+1];
 				//printf(" ptr is \n");
@@ -105,9 +113,18 @@ char** CreateMassivPtr( char* text, long long lines)
 				i++;
 			}
 			else
-				i++;
+		i++;
 	}
-	//printf("massiv was created");
+	/*while( *(text+i) != '\n')
+	{
+			if ( text[i] == '\0' && (text[i+1] != '\0' || text[i+1] != '\n'))			{
+				nol[k] = &text[i];
+				printf(" ptr is %d\n", i);
+				k++;
+			}
+		i++;
+	}
+	//printf("massiv was created");*/
 	return nol;
 }
 
@@ -127,6 +144,8 @@ int FindLetter(char s)
 			return i;
 		i++;
 	}
+	if ( s == '\0')
+		return ENDOFSTRING;
 	return NOTLETTER;
 }
 	/*if( 65 <= s && s< = 90 || 97<= s && s <= 122)
@@ -136,33 +155,45 @@ int FindLetter(char s)
 	
 int CompareStr( const void* p1, const void* p2)
 {
-	const char *s1 = (char*)p1;
-	const char *s2 = (char*)p2;
+	const char *s1 = *(char**)p1;
+	const char *s2 = *(char**)p2;
 	while( *s1 != '\0' || *s2 != '\0')
 	{
+		printf("ptr s1 %d\n", *s1);
 		while (FindLetter(*s1) == NOTLETTER)
 		{
 			s1++;
 		}
-			char c1 = FindLetter(*s1);
+			int c1 = FindLetter(*s1);
+			
 		while(FindLetter(*s2) == NOTLETTER)
 		{
 			s2++;
 		}
-			char c2 = FindLetter(*s2);
-		if( c1 < c2 )
-			return -1;
-		if( c1 > c2)
-			return 2;
+			int c2 = FindLetter(*s2);
+			printf("%d  %d\n", c1, c2);
+			//Sleep(1000);
+			return (c1 - c2);
+		
 		s1++;
 		s2++;
 	}
-	/*if ( *s1 == '\0' && *s2 != '\0')
+	if ( *s1 == '\0' && *s2 != '\0')
 		return -1;
 	if (*s2 == '\0' && *s1 != '\0')
-		return 2;*/
+		return 2;
+	if ( *s1 == '\0' && *s2 == '\0')
+	
 		return 0;
 }
+
+
+
+
+
+
+
+//сравнение пустых строк!!!!!!!!!!
 
 
 			
