@@ -96,7 +96,7 @@ long long StringClean(char* text)
 		}
 		i++;	
 	}
-	text[i+1] = '\n';
+	text[i] = '\n';
 	return lines;
 }
 
