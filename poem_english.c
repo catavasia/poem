@@ -3,9 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include "engletter.h"
 
-const int NOTLETTER = -2;
-const int ENDOFSTRING = 3;
 const int ERRORPTR = 4;
 const int PTROK = 5;
 const int ERRORPTRMASS = 6;
@@ -18,22 +17,21 @@ const int ERRORPTRCOPY = 12;
 
 int CheckPtr();
 char* ReadFile();
-long long StringClean();
+long long CleanString();
 char** CreateMassivPtr();
-int FindLetter(char s);
 int CompareStr();
 void PrintPoem();
 long long CountSize();
 char** CreateCopy();
-void* Reverse();
+void Reverse();
 void Swap();
 int CheckFile();
 
 int main() 
 {
-	FILE *f = fopen("poem.txt", "rb");
-	int a = CheckFile(f);
-	if( a!= OK)
+	FILE *f = fopen("poem_english.txt", "rb");
+	int result1 = CheckFile(f);
+	if( result1!= OK)
 	{
 		fclose(f);
 		return POEMNOTOPEN;
@@ -41,8 +39,8 @@ int main()
 	long long size = CountSize();
 	char* poem = ReadFile(f, size);
 	fclose(f);
-	//Reverse(poem, size);
-	long long lines = StringClean(poem);
+	printf("size is %lld\n",size);
+	long long lines = CleanString(poem);
 	if (lines <= 0)
 	{
 		printf("Number of lines is < 0\n");
@@ -50,15 +48,10 @@ int main()
 	}
 	//printf("lines %lld\n", lines);
 	int i = 0;
-	/*while(poem[i] != '\n')
-	{
-		printf("%c", poem[i]);
-		i++;
-	}
-	printf("All done\n");*/
 	char** masptr = CreateMassivPtr(poem, lines);
 	if(CheckPtr(masptr) == ERRORPTR)
 		return ERRORPTRMASS;
+	Reverse(masptr, lines);
 	char** copy = CreateCopy(masptr, lines);
 	if(CheckPtr(copy) == ERRORPTR)
 		return ERRORPTRCOPY;
@@ -67,12 +60,16 @@ int main()
 		printf("%s\n", *(masptr+i));
 	}*/
 	FILE* f2 = fopen("sorted poem.txt", "w");
-	int b = CheckFile(f2);
-	if(b!= OK)
+	int result2 = CheckFile(f2);
+	if(result2!= OK)
 	{
 		fclose(f2);
 		return SORTEDPOEMNOTOPEN;
 	}
+	qsort(masptr, lines, sizeof(char*), CompareStr);
+	Reverse(masptr, lines);
+	fprintf(f, "RHYNESORTED POEM\n\n");
+	PrintPoem(masptr, lines, f2);
 	qsort(masptr, lines, sizeof(char*), CompareStr);
 	fprintf(f, "SORTED POEM\n\n");
 	PrintPoem(masptr, lines, f2);
@@ -104,7 +101,7 @@ char* ReadFile(FILE* f, long long a)
 	return W;
 }
 
-long long StringClean(char* poem)
+long long CleanString(char* poem)
 {
 	long long lines = 0;
 	int i = 0;
@@ -115,7 +112,8 @@ long long StringClean(char* poem)
 			poem[i] = '\0';
 			lines++;
 		}
-		i++;	
+		i++;
+		//printf("i is %d\n", i);	
 	}
 	poem[i] = '\n';
 	return lines;
@@ -127,44 +125,23 @@ char** CreateMassivPtr(char* poem, long long lines)
 	int i = 1;
 	int k = 1;
 	masptr[0] = &poem[0];
-	while((*(poem+i) != '\n'))
+	while(*(poem+i) != '\n' && k < lines)
     {
 		if (poem[i] == '\0')
 		{
 			masptr[k] = &poem[i+1];
-			printf("OK %d\n", i);
+			//printf("OK");
 			k++;
 			i++;
+			printf("i is %d\n",i);
 		}
 		else
 			i++;
+		
 	}
 	return masptr;
 }
 
-/*void Swap( char** s1, char** s2)
-{
-	char *temp = *s1;
-	*s1 = *s2;
-	*s2 = temp;
-}
-*/
-
-int FindLetter(char s)
-{
-	char Alph[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	for (int i = 0; i < 52; )	
-	{
-		if (s == Alph[i])
-			return i;
-		i++;
-	}
-	if (s == '\0')
-		return ENDOFSTRING;
-	return NOTLETTER;
-}
-
-	
 int CompareStr( const void* p1, const void* p2)
 {
 	const char* s1 = *(char**)p1;
@@ -172,22 +149,21 @@ int CompareStr( const void* p1, const void* p2)
 	while( *s1 != '\0' || *s2 != '\0')
 	{
 		//printf("ptr s1 %d\n", *s1);
-		while (FindLetter(*s1) == NOTLETTER)
+		while (EngLetter(*s1) == NOTLETTER)
 		{
 			s1++;
 		}
-		int c1 = FindLetter(*s1);	
-		while(FindLetter(*s2) == NOTLETTER)
+		int c1 = EngLetter(*s1);	
+		while(EngLetter(*s2) == NOTLETTER)
 		{
 			s2++;
 		}
-		int c2 = FindLetter(*s2);
+		int c2 = EngLetter(*s2);
 		if(c1 != c2)
 			return c1-c2;
 		s1++;
 		s2++;
-	}
-		
+	}	
 	if (*s1 == '\0' && *s2 != '\0')
 		return -1;
 	if (*s2 == '\0' && *s1 != '\0')
@@ -218,9 +194,9 @@ void PrintPoem(char** masptr, int lines, FILE* f)
 long long CountSize(FILE* f)
 {
 	struct stat st = {};
-	stat("poem.txt", &st);
+	stat("poem_english.txt", &st);
 	long long a = st.st_size;
-	return a;
+	return a+1;
 }
 
 char** CreateCopy(char** masptr, long long lines)
@@ -240,14 +216,6 @@ void Swap( char* a, char* b)
 	*b = c;
 }
 	
-void* Reverse(char* poem, long long size)
-{
-	for(long long i = 0; i < size/2; i++)
-	{
-		Swap(poem+i,poem+size-i-1);
-	}
-}
-
 int CheckFile(FILE* f)
 {
 	if(f == NULL) 
@@ -259,7 +227,22 @@ int CheckFile(FILE* f)
 		return OK;
 }
 
-
+void Reverse(char** masptr, long long lines)
+{
+	for(long long i = 0; i < lines; i++)
+	{
+		int k = 0; 
+		while((*(*(masptr+i)+k)) != '\0') 
+		{
+			k++;
+		}
+		for(int j = 0; j < k/2; j++) 
+		{
+			Swap((*(masptr+i)+j),(*(masptr+i)+k-1-j));
+		}
+		//printf("%s\n", *(masptr+i));
+	}
+}
 
 
 			
